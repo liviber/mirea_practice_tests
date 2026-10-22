@@ -1,32 +1,56 @@
-from math import ceil
+import random
 
-def is_simple(num: int) -> bool:
-    # генерировать целый массив простых чисел для проверки одного из них нецелесообразно, поэтому используется перебор а не решето
-    if num == 1:
-        return False
-    if num == 2:
+def eratosthenes_sieve(nums) -> set:
+    nums = set(nums)
+    addition = []
+
+    while nums:
+        p, u = min(nums), 1
+
+        while p * u <= max(nums):
+            u += 1
+            nums.discard(p * u)
+
+        addition.append(p)
+        nums.discard(p)
+
+    return set(addition + list(nums))
+
+# используется как кеш для малых, часто встречающихся значений
+SIEVE = eratosthenes_sieve(list(range(2, 501)))
+
+def ferma_prime_test(num : int, k : int) -> bool:
+    for _ in range(k): # k случайных тестов
+        a = random.randint(2, num - 2)
+
+        if pow(a, num - 1, num) != 1:
+            return False # тут 100 %
+    return True # тут не 100 %
+
+def is_simple(num : int) -> bool:
+    if num in SIEVE:
         return True
 
-    for x in range(2, ceil(num ** 0.5) + 1):
-        if num != 1 and num % x == 0:
-            return False
-    return True
+    if num % 2 == 0 or num == 1:
+        return False
+
+    return ferma_prime_test(num, 37)
 
 
 def ferma_factorize(n: int) -> list[int]:
 
-    if is_simple(n) or n in [1, 2]: # простое число или 1 нельзя разложить
+    if n == 1 or is_simple(int(n)): # простое число или 1 нельзя разложить
         return [n]
 
     if n % 2 == 0: # входное число нечетное, но его делители могут оказаться четными
         return [2, *ferma_factorize(n // 2)]
 
-    temp = n ** 0.5
+    buffer = n ** 0.5
 
-    if temp % 1 == 0: # мы берем x от 1 по алгоритму из файла, но это исключает вариант, когда входное число - квадрат другого
-        return [*ferma_factorize(temp)] * 2
+    if buffer % 1 == 0: # мы берем x от 1 по алгоритму из файла, но это исключает вариант, когда входное число - квадрат другого
+        return [*ferma_factorize(buffer)] * 2
 
-    m = temp // 1
+    m = buffer // 1
 
     for x in range(1, int(n)): # метод ферма по описанию из файла
         q = (m + x) ** 2 - n
@@ -62,5 +86,5 @@ class FactorizedNum:
             output += f"{"n = " if not output else " + "}{divider}^{count}"
         return output
 
-print(FactorizedNum(231).out()) # n = 2^5 + 7^1 + 13^1
+print(FactorizedNum(163756472321**2).out())
 
